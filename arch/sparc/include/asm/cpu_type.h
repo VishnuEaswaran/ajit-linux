@@ -12,6 +12,7 @@ enum sparc_cpu {
   sun_unknown = 0x04,
   ap1000      = 0x05, /* almost a sun4m */
   sparc_leon  = 0x06, /* Leon SoC */
+  ajit	      = 0x07,
 };
 
 #ifdef CONFIG_SPARC32

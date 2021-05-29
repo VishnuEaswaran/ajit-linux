@@ -44,6 +44,7 @@ static unsigned long calibrate_delay_direct(void)
 	int min = -1;
 	int i;
 
+	pr_info("In calibrate_delay_direct()");
 	if (read_current_timer(&pre_start) < 0 )
 		return 0;
 
@@ -264,9 +265,12 @@ unsigned long __attribute__((weak)) calibrate_delay_is_known(void)
 
 void calibrate_delay(void)
 {
+
 	unsigned long lpj;
 	static bool printed;
 	int this_cpu = smp_processor_id();
+	
+	pr_info("In calibrate_delay()");
 
 	if (per_cpu(cpu_loops_per_jiffy, this_cpu)) {
 		lpj = per_cpu(cpu_loops_per_jiffy, this_cpu);

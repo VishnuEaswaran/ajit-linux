@@ -4823,6 +4823,7 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat,
 	unsigned long zone_start_pfn = pgdat->node_start_pfn;
 	int ret;
 
+	prom_printf("\n------pgdat_resize_init()");
 	pgdat_resize_init(pgdat);
 #ifdef CONFIG_NUMA_BALANCING
 	spin_lock_init(&pgdat->numabalancing_migrate_lock);
@@ -4831,12 +4832,14 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat,
 #endif
 	init_waitqueue_head(&pgdat->kswapd_wait);
 	init_waitqueue_head(&pgdat->pfmemalloc_wait);
+	prom_printf("\n------pgdat_page_cgroup_init()");
 	pgdat_page_cgroup_init(pgdat);
 
 	for (j = 0; j < MAX_NR_ZONES; j++) {
 		struct zone *zone = pgdat->node_zones + j;
 		unsigned long size, realsize, freesize, memmap_pages;
 
+		prom_printf("\n------zone_spanned_pages_in_node()");
 		size = zone_spanned_pages_in_node(nid, j, node_start_pfn,
 						  node_end_pfn, zones_size);
 		realsize = freesize = size - zone_absent_pages_in_node(nid, j,
@@ -4849,6 +4852,7 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat,
 		 * is used by this zone for memmap. This affects the watermark
 		 * and per-cpu initialisations
 		 */
+		prom_printf("\n------calc_memmap_size()");
 		memmap_pages = calc_memmap_size(size, realsize);
 		if (freesize >= memmap_pages) {
 			freesize -= memmap_pages;
@@ -4897,17 +4901,22 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat,
 		zone_pcp_init(zone);
 
 		/* For bootup, initialized properly in watermark setup */
+		prom_printf("\n------mod_zone_page_state()");
 		mod_zone_page_state(zone, NR_ALLOC_BATCH, zone->managed_pages);
 
 		lruvec_init(&zone->lruvec);
 		if (!size)
 			continue;
 
+		prom_printf("\n------set_pageblock_order()");
 		set_pageblock_order();
+		prom_printf("\n------setup_usemap()");
 		setup_usemap(pgdat, zone, zone_start_pfn, size);
+		prom_printf("\n------init_currently_empty_zone()");
 		ret = init_currently_empty_zone(zone, zone_start_pfn,
 						size, MEMMAP_EARLY);
 		BUG_ON(ret);
+		prom_printf("\n------memmap_init()");
 		memmap_init(size, nid, j, zone_start_pfn);
 		zone_start_pfn += size;
 	}
@@ -4980,6 +4989,7 @@ void __paginginit free_area_init_node(int nid, unsigned long *zones_size,
 		(unsigned long)pgdat->node_mem_map);
 #endif
 
+	prom_printf("\n------free_area_init_core()");
 	free_area_init_core(pgdat, start_pfn, end_pfn,
 			    zones_size, zholes_size);
 }

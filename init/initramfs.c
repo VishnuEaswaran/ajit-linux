@@ -427,9 +427,14 @@ static char * __init unpack_to_rootfs(char *buf, unsigned len)
 	decompress_fn decompress;
 	const char *compress_name;
 	static __initdata char msg_buf[64];
+	
+	prom_printf("\n------ in unpack_to_rootfs()");
 
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	header_buf = kmalloc(110, GFP_KERNEL);
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	symlink_buf = kmalloc(PATH_MAX + N_ALIGN(PATH_MAX) + 1, GFP_KERNEL);
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	name_buf = kmalloc(N_ALIGN(PATH_MAX), GFP_KERNEL);
 
 	if (!header_buf || !symlink_buf || !name_buf)
@@ -454,9 +459,12 @@ static char * __init unpack_to_rootfs(char *buf, unsigned len)
 			continue;
 		}
 		this_header = 0;
+		prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 		decompress = decompress_method(buf, len, &compress_name);
 		pr_debug("Detected %s compressed data\n", compress_name);
+		prom_printf("Detected %s compressed data\n", compress_name);
 		if (decompress) {
+			prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 			res = decompress(buf, len, NULL, flush_buffer, NULL,
 				   &my_inptr, error);
 			if (res)
@@ -476,9 +484,13 @@ static char * __init unpack_to_rootfs(char *buf, unsigned len)
 		buf += my_inptr;
 		len -= my_inptr;
 	}
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	dir_utime();
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	kfree(name_buf);
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	kfree(symlink_buf);
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	kfree(header_buf);
 	return message;
 }
@@ -582,13 +594,16 @@ static void __init clean_rootfs(void)
 
 static int __init populate_rootfs(void)
 {
-	char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);
+	char *err;
+	prom_printf("\n------ in populate_rootfs()");
+	err= unpack_to_rootfs(__initramfs_start, __initramfs_size);
 	if (err)
 		panic("%s", err); /* Failed to decompress INTERNAL initramfs */
 	if (initrd_start) {
 #ifdef CONFIG_BLK_DEV_RAM
 		int fd;
 		printk(KERN_INFO "Trying to unpack rootfs image as initramfs...\n");
+		prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 		err = unpack_to_rootfs((char *)initrd_start,
 			initrd_end - initrd_start);
 		if (!err) {
@@ -596,31 +611,40 @@ static int __init populate_rootfs(void)
 			goto done;
 		} else {
 			clean_rootfs();
+			prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 			unpack_to_rootfs(__initramfs_start, __initramfs_size);
 		}
 		printk(KERN_INFO "rootfs image is not initramfs (%s)"
 				"; looks like an initrd\n", err);
+		prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 		fd = sys_open("/initrd.image",
 			      O_WRONLY|O_CREAT, 0700);
 		if (fd >= 0) {
+			prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 			sys_write(fd, (char *)initrd_start,
 					initrd_end - initrd_start);
+			prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 			sys_close(fd);
+			prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 			free_initrd();
 		}
 	done:
 #else
 		printk(KERN_INFO "Unpacking initramfs...\n");
+		prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 		err = unpack_to_rootfs((char *)initrd_start,
 			initrd_end - initrd_start);
 		if (err)
 			printk(KERN_EMERG "Initramfs unpacking failed: %s\n", err);
+			
+		prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 		free_initrd();
 #endif
 		/*
 		 * Try loading default modules from initramfs.  This gives
 		 * us a chance to load before device_initcalls.
 		 */
+		prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 		load_default_modules();
 	}
 	return 0;

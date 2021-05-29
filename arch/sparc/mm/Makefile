@@ -11,6 +11,7 @@ obj-$(CONFIG_SPARC32)   += extable.o srmmu.o iommu.o io-unit.o
 obj-$(CONFIG_SPARC32)   += srmmu_access.o
 obj-$(CONFIG_SPARC32)   += hypersparc.o viking.o tsunami.o swift.o
 obj-$(CONFIG_SPARC32)   += leon_mm.o
+obj-$(CONFIG_SPARC32)   += Ajit_srmmu.o
 
 # Only used by sparc64
 obj-$(CONFIG_HUGETLB_PAGE) += hugetlbpage.o

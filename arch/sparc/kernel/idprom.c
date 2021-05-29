@@ -28,6 +28,8 @@ static struct idprom idprom_buffer;
 static struct Sun_Machine_Models Sun_Machines[] = {
 /* First, Leon */
 { .name = "Leon3 System-on-a-Chip",  .id_machtype = (M_LEON | M_LEON3_SOC) },
+/*Ajit processor */
+{ .name = "Ajit Processor",  .id_machtype = (M_AJIT) },
 /* Finally, early Sun4m's */
 { .name = "Sun4m SparcSystem600",    .id_machtype = (SM_SUN4M | SM_4M_SS60) },
 { .name = "Sun4m SparcStation10/20", .id_machtype = (SM_SUN4M | SM_4M_SS50) },

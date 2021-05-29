@@ -229,6 +229,7 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
 #endif
 	/* Reserve the kernel text/data/bss. */
 	size = (start_pfn << PAGE_SHIFT) - phys_base;
+	prom_printf("\nReserving memory for kernel text/data/bss, physical base =0x%lx, size=0x%lx", phys_base, size);
 	reserve_bootmem(phys_base, size, BOOTMEM_DEFAULT);
 	*pages_avail -= PAGE_ALIGN(size) >> PAGE_SHIFT;
 
@@ -237,6 +238,7 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
 	 * in free_all_bootmem.
 	 */
 	size = bootmap_size;
+	prom_printf("\nReserving bootmem map. size=0x%lx", size);
 	reserve_bootmem((bootmap_pfn << PAGE_SHIFT), size, BOOTMEM_DEFAULT);
 	*pages_avail -= PAGE_ALIGN(size) >> PAGE_SHIFT;
 
@@ -250,9 +252,13 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
  */
 void __init paging_init(void)
 {
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	srmmu_paging_init();
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	prom_build_devicetree();
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	of_fill_in_cpu_data();
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	device_scan();
 }
 

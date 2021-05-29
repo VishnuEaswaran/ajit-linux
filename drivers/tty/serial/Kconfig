@@ -634,6 +634,21 @@ config SERIAL_SUNZILOG_CONSOLE
 	  on your Sparc system as the console, you can do so by answering
 	  Y to this option.
 
+config SERIAL_AJIT_UART
+	tristate "Ajit UART serial support"
+	depends on SPARC
+	help
+	  This driver supports the Ajit UART device found on the Ajit Sparc V8
+	  processor.  Say Y or M if you want to be able to use this port.
+
+config SERIAL_AJIT_CONSOLE
+	bool "Console on Ajit UART serial port"
+	depends on SERIAL_AJIT_UART=y
+	help
+	  If you would like to be able to use the Ajit UART serial port
+	  on your Sparc system as the console, you can do so by answering
+	  Y to this option.
+
 config SERIAL_SUNSU
 	tristate "Sun SU serial support"
 	depends on SPARC && PCI

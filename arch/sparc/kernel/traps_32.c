@@ -108,11 +108,13 @@ void do_hw_interrupt(struct pt_regs *regs, unsigned long type)
 	info.si_trapno = type - 0x80;
 	force_sig_info(SIGILL, &info, current);
 }
-
+#include<asm/oplib_32.h>
 void do_illegal_instruction(struct pt_regs *regs, unsigned long pc, unsigned long npc,
 			    unsigned long psr)
 {
 	siginfo_t info;
+	prom_printf("\n Inside do_illegal_instruction!");
+	prom_printf("\n Illegal instr. at pc=%08lx instruction is %08lx\n", regs->pc, *(unsigned long *)regs->pc);
 
 	if(psr & PSR_PS)
 		die_if_kernel("Kernel illegal instruction", regs);

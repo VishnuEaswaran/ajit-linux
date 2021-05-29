@@ -3973,6 +3973,7 @@ out_restore:
 void lockdep_init(void)
 {
 	int i;
+	printk("entering lockdep_init\n");
 
 	/*
 	 * Some architectures have their own start_kernel()
@@ -3986,9 +3987,12 @@ void lockdep_init(void)
 	for (i = 0; i < CLASSHASH_SIZE; i++)
 		INIT_LIST_HEAD(classhash_table + i);
 
+	printk("lockdep_init first loop done \n");
+
 	for (i = 0; i < CHAINHASH_SIZE; i++)
 		INIT_LIST_HEAD(chainhash_table + i);
 
+	printk("lockdep_init_second_loop done \n");
 	lockdep_initialized = 1;
 }
 

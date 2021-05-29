@@ -244,4 +244,8 @@
 /* SC16IS74xx */
 #define PORT_SC16IS7XX   108
 
+
+/* Ajit serial port*/
+#define PORT_AJIT 109
+
 #endif /* _UAPILINUX_SERIAL_CORE_H */

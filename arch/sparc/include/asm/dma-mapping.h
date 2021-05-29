@@ -23,6 +23,8 @@ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
 #if defined(CONFIG_SPARC32) && defined(CONFIG_PCI)
 	if (sparc_cpu_model == sparc_leon)
 		return leon_dma_ops;
+	else if (sparc_cpu_model == Ajit)
+		return &pci32_dma_ops;
 	else if (dev->bus == &pci_bus_type)
 		return &pci32_dma_ops;
 #endif

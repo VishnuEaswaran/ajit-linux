@@ -20,9 +20,9 @@
 #include <asm/setup.h>
 #include <asm/pcic.h>
 #include <asm/leon.h>
-
 #include "kernel.h"
 #include "irq.h"
+#include <asm/Ajit_irq.h>
 
 /* platform specific irq setup */
 struct sparc_config sparc_config;
@@ -353,9 +353,12 @@ void __init init_IRQ(void)
 	case sparc_leon:
 		leon_init_IRQ();
 		break;
+	case ajit :
+		Ajit_init_IRQ();
+		break;
 
 	default:
-		prom_printf("Cannot initialize IRQs on this Sun machine...");
+		prom_printf("Cannot initialize IRQs on this Sun machine...\n");
 		break;
 	}
 }

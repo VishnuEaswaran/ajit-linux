@@ -19,6 +19,7 @@
 #include <linux/device.h>
 
 #include "tick-internal.h"
+#include<asm/oplib_32.h> //added for prom_printf to work
 
 /* The registered clock event devices */
 static LIST_HEAD(clockevent_devices);
@@ -380,7 +381,8 @@ EXPORT_SYMBOL_GPL(clockevents_unbind);
 void clockevents_register_device(struct clock_event_device *dev)
 {
 	unsigned long flags;
-
+	prom_printf("\n In clockevents_register_device(dev) dev = %p",dev);
+	prom_printf("\n (dev->mode != CLOCK_EVT_MODE_UNUSED)= %d" , (dev->mode != CLOCK_EVT_MODE_UNUSED));
 	BUG_ON(dev->mode != CLOCK_EVT_MODE_UNUSED);
 	if (!dev->cpumask) {
 		WARN_ON(num_possible_cpus() > 1);
@@ -390,6 +392,7 @@ void clockevents_register_device(struct clock_event_device *dev)
 	raw_spin_lock_irqsave(&clockevents_lock, flags);
 
 	list_add(&dev->list, &clockevent_devices);
+	prom_printf("\n Entering tick_check_new_device()" );
 	tick_check_new_device(dev);
 	clockevents_notify_released();
 

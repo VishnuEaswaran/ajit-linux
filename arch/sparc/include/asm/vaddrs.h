@@ -15,8 +15,12 @@
 
 #define SRMMU_NOCACHE_VADDR	(KERNBASE + SRMMU_MAXMEM)
 				/* = 0x0fc000000 */
+
 /* XXX Empiricals - this needs to go away - KMW */
-#define SRMMU_MIN_NOCACHE_PAGES (550)
+
+/*Modification for Ajit processor. We have to work with very low memory*/
+/* #define SRMMU_MIN_NOCACHE_PAGES (550)*/
+#define SRMMU_MIN_NOCACHE_PAGES (64)
 #define SRMMU_MAX_NOCACHE_PAGES	(1280)
 
 /* The following constant is used in mm/srmmu.c::srmmu_nocache_calcsize()

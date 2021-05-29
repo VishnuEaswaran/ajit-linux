@@ -1373,6 +1373,7 @@ static void call_console_drivers(int level, const char *text, size_t len)
 		    !(con->flags & CON_ANYTIME))
 			continue;
 		con->write(con, text, len);
+
 	}
 }
 
@@ -2464,9 +2465,11 @@ void register_console(struct console *newcon)
 	 * users know there might be something in the kernel's log buffer that
 	 * went to the bootconsole (that they do not see on the real console)
 	 */
-	pr_info("%sconsole [%s%d] enabled\n",
+
+	pr_info("%s console [%s%d] enabled\n",
 		(newcon->flags & CON_BOOT) ? "boot" : "" ,
 		newcon->name, newcon->index);
+	
 	if (bcon &&
 	    ((newcon->flags & (CON_CONSDEV | CON_BOOT)) == CON_CONSDEV) &&
 	    !keep_bootcon) {

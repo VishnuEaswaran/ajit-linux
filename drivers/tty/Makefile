@@ -31,3 +31,6 @@ obj-$(CONFIG_GOLDFISH_TTY)	+= goldfish.o
 obj-$(CONFIG_DA_TTY)		+= metag_da.o
 
 obj-y += ipwireless/
+
+#Added for Ajit processor:
+#obj-y += tiny_tty.o

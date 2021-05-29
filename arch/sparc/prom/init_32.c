@@ -57,6 +57,7 @@ void __init prom_init(struct linux_romvec *rp)
 	prom_nodeops = romvec->pv_nodeops;
 
 	prom_root_node = prom_getsibling(0);
+	
 	if ((prom_root_node == 0) || ((s32)prom_root_node == -1))
 		prom_halt();
 
@@ -67,9 +68,8 @@ void __init prom_init(struct linux_romvec *rp)
 	prom_meminit();
 
 	prom_ranges_init();
-
-	printk("PROMLIB: Sun Boot Prom Version %d Revision %d\n",
+	
+	prom_printf("PROMLIB: Sun Boot Prom Version %d Revision %d\n",
 	       romvec->pv_romvers, prom_rev);
-
 	/* Initialization successful. */
 }

@@ -92,6 +92,12 @@ sparc_ramdisk_size:
  * %g7 and at prom_vector_p. And also quickly check whether we are on
  * a v0, v2, or v3 prom.
  */
+
+ /*==============================================================*/
+ /*==============================================================*/
+ /*==============================================================*/
+ /*==============================================================*/
+
 gokernel:
 		/* Ok, it's nice to know, as early as possible, if we
 		 * are already mapped where we expect to be in virtual
@@ -113,10 +119,11 @@ current_pc:
 
 1:
 		mov	%o7, %g3
-
-		tst	%o0
-		be	no_sun4u_here
-		 mov	%g4, %o7		/* Previous %o7. */
+		!---- AJIT specific ------------------
+		!	tst	%o0
+		!	be	no_sun4u_here
+		!---- end AJIT specific --------------
+		mov	%g4, %o7		/* Previous %o7. */
 
 		mov	%o0, %l0		! stash away romvec
 		mov	%o0, %g7		! put it here too
@@ -126,7 +133,7 @@ current_pc:
 		set	current_pc, %g5
 		cmp	%g3, %g5
 		be	already_mapped
-		 nop
+		nop
 
 		/* %l6 will hold the offset we have to subtract
 		 * from absolute symbols in order to access areas
@@ -142,37 +149,40 @@ already_mapped:
 
 		/* Copy over the Prom's level 14 clock handler. */
 copy_prom_lvl14:
-#if 1
-		/* DJHR
-		 * preserve our linked/calculated instructions
-		 */
-		set	lvl14_save, %g1
-		set	t_irq14, %g3
-		sub	%g1, %l6, %g1		! translate to physical
-		sub	%g3, %l6, %g3		! translate to physical
-		ldd	[%g3], %g4
-		std	%g4, [%g1]
-		ldd	[%g3+8], %g4
-		std	%g4, [%g1+8]
-#endif
-		rd	%tbr, %g1
-		andn	%g1, 0xfff, %g1		! proms trap table base
-		or	%g0, (0x1e<<4), %g2	! offset to lvl14 intr
-		or	%g1, %g2, %g2
-		set	t_irq14, %g3
-		sub	%g3, %l6, %g3
-		ldd	[%g2], %g4
-		std	%g4, [%g3]
-		ldd	[%g2 + 0x8], %g4
-		std	%g4, [%g3 + 0x8]	! Copy proms handler
+		
+		!---- AJIT specific ------------------
+		!	#if 1
+		!			/* DJHR
+		!			 * preserve our linked/calculated instructions
+		!			 */
+		!			set	lvl14_save, %g1
+		!			set	t_irq14, %g3
+		!			sub	%g1, %l6, %g1		! translate to physical
+		!			sub	%g3, %l6, %g3		! translate to physical
+		!			ldd	[%g3], %g4
+		!			std	%g4, [%g1]
+		!			ldd	[%g3+8], %g4
+		!			std	%g4, [%g1+8]
+		!	#endif
+		!			rd	%tbr, %g1
+		!			andn	%g1, 0xfff, %g1		! proms trap table base
+		!			or	%g0, (0x1e<<4), %g2	! offset to lvl14 intr
+		!			or	%g1, %g2, %g2
+		!			set	t_irq14, %g3
+		!			sub	%g3, %l6, %g3
+		!			ldd	[%g2], %g4
+		!			std	%g4, [%g3]
+		!			ldd	[%g2 + 0x8], %g4
+		!			std	%g4, [%g3 + 0x8]	! Copy proms handler
 
-/* DON'T TOUCH %l0 thru %l5 in these remapping routines,
- * we need their values afterwards!
- */
+		!	/* DON'T TOUCH %l0 thru %l5 in these remapping routines,
+		!	 * we need their values afterwards!
+		!	 */
 
-		/* Now check whether we are already mapped, if we
-		 * are we can skip all this garbage coming up.
-		 */
+		!			/* Now check whether we are already mapped, if we
+		!			 * are we can skip all this garbage coming up.
+		!			 */
+		!---- end AJIT specific --------------
 copy_prom_done:
 		cmp	%l6, 0
 		be	go_to_highmem		! this will be a nop then
@@ -366,77 +376,79 @@ execute_in_high_mem:
 		sethi	%hi(linux_dbvec), %g1
 		st	%o1, [%g1 + %lo(linux_dbvec)]
 
-		/* Get the machine type via the romvec
-		 * getprops node operation
-		 */
-		add	%g7, 0x1c, %l1
-		ld	[%l1], %l0
-		ld	[%l0], %l0
-		call	%l0
-		 or	%g0, %g0, %o0		! next_node(0) = first_node
-		or	%o0, %g0, %g6
+		!---- AJIT specific ------------------
+		!			/* Get the machine type via the romvec
+		!			 * getprops node operation
+		!			 */
+		!			add	%g7, 0x1c, %l1
+		!			ld	[%l1], %l0
+		!			ld	[%l0], %l0
+		!			call	%l0
+		!			 or	%g0, %g0, %o0		! next_node(0) = first_node
+		!			or	%o0, %g0, %g6
 
-		sethi	%hi(cputypvar), %o1	! First node has cpu-arch
-		or	%o1, %lo(cputypvar), %o1
-		sethi	%hi(cputypval), %o2	! information, the string
-		or	%o2, %lo(cputypval), %o2
-		ld	[%l1], %l0		! 'compatible' tells
-		ld	[%l0 + 0xc], %l0	! that we want 'sun4x' where
-		call	%l0			! x is one of 'm', 'd' or 'e'.
-		 nop				! %o2 holds pointer
-						! to a buf where above string
-						! will get stored by the prom.
+		!			sethi	%hi(cputypvar), %o1	! First node has cpu-arch
+		!			or	%o1, %lo(cputypvar), %o1
+		!			sethi	%hi(cputypval), %o2	! information, the string
+		!			or	%o2, %lo(cputypval), %o2
+		!			ld	[%l1], %l0		! 'compatible' tells
+		!			ld	[%l0 + 0xc], %l0	! that we want 'sun4x' where
+		!			call	%l0			! x is one of 'm', 'd' or 'e'.
+		!			 nop				! %o2 holds pointer
+		!							! to a buf where above string
+		!							! will get stored by the prom.
 
 
-		/* Check value of "compatible" property.
-		 * "value" => "model"
-		 * leon => sparc_leon
-		 * sun4m => sun4m
-		 * sun4s => sun4m
-		 * sun4d => sun4d
-		 * sun4e => "no_sun4e_here"
-		 * '*'   => "no_sun4u_here"
-		 * Check single letters only
-		 */
+		!			/* Check value of "compatible" property.
+		!			 * "value" => "model"
+		!			 * leon => sparc_leon
+		!			 * sun4m => sun4m
+		!			 * sun4s => sun4m
+		!			 * sun4d => sun4d
+		!			 * sun4e => "no_sun4e_here"
+		!			 * '*'   => "no_sun4u_here"
+		!			 * Check single letters only
+		!			 */
 
-		set	cputypval, %o2
-		/* If cputypval[0] == 'l' (lower case letter L) this is leon */
-		ldub	[%o2], %l1
-		cmp	%l1, 'l'
-		be	leon_init
-		 nop
+		!			set	cputypval, %o2
+		!			/* If cputypval[0] == 'l' (lower case letter L) this is leon */
+		!			ldub	[%o2], %l1
+		!			cmp	%l1, 'l'
+		!			be	leon_init
+		!			 nop
 
-		/* Check cputypval[4] to find the sun model */
-		ldub	[%o2 + 0x4], %l1
+		!			/* Check cputypval[4] to find the sun model */
+		!			ldub	[%o2 + 0x4], %l1
 
-		cmp	%l1, 'm'
-		be	sun4m_init
-		 cmp	%l1, 's'
-		be	sun4m_init
-		 cmp	%l1, 'd'
-		be	sun4d_init
-		 cmp	%l1, 'e'
-		be	no_sun4e_here		! Could be a sun4e.
-		 nop
-		b	no_sun4u_here		! AIEEE, a V9 sun4u... Get our BIG BROTHER kernel :))
-		 nop
+		!			cmp	%l1, 'm'
+		!			be	sun4m_init
+		!			 cmp	%l1, 's'
+		!			be	sun4m_init
+		!			 cmp	%l1, 'd'
+		!			be	sun4d_init
+		!			 cmp	%l1, 'e'
+		!			be	no_sun4e_here		! Could be a sun4e.
+		!			 nop
+		!			b	no_sun4u_here		! AIEEE, a V9 sun4u... Get our BIG BROTHER kernel :))
+		!			 nop
 
-leon_init:
-		/* LEON CPU - set boot_cpu_id */
-		sethi	%hi(boot_cpu_id), %g2	! boot-cpu index
+		!	leon_init:
+		!			/* LEON CPU - set boot_cpu_id */
+		!			sethi	%hi(boot_cpu_id), %g2	! boot-cpu index
 
-#ifdef CONFIG_SMP
-		ldub	[%g2 + %lo(boot_cpu_id)], %g1
-		cmp	%g1, 0xff		! unset means first CPU
-		bne	leon_smp_cpu_startup	! continue only with master
-		 nop
-#endif
-		/* Get CPU-ID from most significant 4-bit of ASR17 */
-		rd     %asr17, %g1
-		srl    %g1, 28, %g1
+		!	#ifdef CONFIG_SMP
+		!			ldub	[%g2 + %lo(boot_cpu_id)], %g1
+		!			cmp	%g1, 0xff		! unset means first CPU
+		!			bne	leon_smp_cpu_startup	! continue only with master
+		!			 nop
+		!	#endif
+		!			/* Get CPU-ID from most significant 4-bit of ASR17 */
+		!			rd     %asr17, %g1
+		!			srl    %g1, 28, %g1
 
-		/* Update boot_cpu_id only on boot cpu */
-		stub	%g1, [%g2 + %lo(boot_cpu_id)]
+		!			/* Update boot_cpu_id only on boot cpu */
+		!			stub	%g1, [%g2 + %lo(boot_cpu_id)]
+		!---- end AJIT specific --------------
 
 		ba continue_boot
 		 nop
@@ -516,15 +528,18 @@ continue_boot:
 		add	%g1, %g2, %sp
 		mov	0, %fp			/* And for good luck */
 
-		/* Zero out our BSS section. */
-		set	__bss_start , %o0	! First address of BSS
-		set	_end , %o1		! Last address of BSS
-		add	%o0, 0x1, %o0
-1:
-		stb	%g0, [%o0]
-		subcc	%o0, %o1, %g0
-		bl	1b
-		 add	%o0, 0x1, %o0
+		
+		!---- AJIT specific ------------------
+		!		/* Zero out our BSS section. */
+		!		set	__bss_start , %o0	! First address of BSS
+		!		set	_end , %o1		! Last address of BSS
+		!		add	%o0, 0x1, %o0
+		!1:
+		!		stb	%g0, [%o0]
+		!		subcc	%o0, %o1, %g0
+		!		bl	1b
+		!		add	%o0, 0x1, %o0
+		!---- end AJIT specific --------------
 
 		/* If boot_cpu_id has not been setup by machine specific
 		 * init-code above we default it to zero.
@@ -661,7 +676,7 @@ continue_boot:
 		sethi	%hi(prom_vector_p), %g5
 		ld	[%g5 + %lo(prom_vector_p)], %o0
 		call	sparc32_start_kernel
-		 nop
+		nop
 
 		/* We should not get here. */
 		call	halt_me

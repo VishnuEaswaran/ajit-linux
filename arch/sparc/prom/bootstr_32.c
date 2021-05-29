@@ -15,8 +15,8 @@ static char fetched __initdata = 0;
 char * __init
 prom_getbootargs(void)
 {
-	int iter;
-	char *cp, *arg;
+	//int iter;
+	//char *cp, *arg;
 
 	/* This check saves us from a panic when bootfd patches args. */
 	if (fetched) {
@@ -25,25 +25,33 @@ prom_getbootargs(void)
 
 	switch (prom_vers) {
 	case PROM_V0:
+		
+		/*
 		cp = barg_buf;
-		/* Start from 1 and go over fd(0,0,0)kernel */
+		// Start from 1 and go over fd(0,0,0)kernel 
 		for (iter = 1; iter < 8; iter++) {
 			arg = (*(romvec->pv_v0bootargs))->argv[iter];
 			if (arg == NULL)
 				break;
 			while (*arg != 0) {
-				/* Leave place for space and null. */
+				// Leave place for space and null. 
 				if (cp >= barg_buf + BARG_LEN - 2)
-					/* We might issue a warning here. */
+					// We might issue a warning here. 
 					break;
 				*cp++ = *arg++;
 			}
 			*cp++ = ' ';
 			if (cp >= barg_buf + BARG_LEN - 1)
-				/* We might issue a warning here. */
+				// We might issue a warning here. 
 				break;
 		}
 		*cp = 0;
+		break;
+		*/
+
+		//AJIT: Comment out the V0 stuff above, and
+		//just make bootargs equal to a fixed string
+		strlcpy(barg_buf, " debug lpj=10000 loglevel=7 console=ttyS0 ", sizeof(barg_buf));
 		break;
 	case PROM_V2:
 	case PROM_V3:

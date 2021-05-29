@@ -192,6 +192,14 @@ config SERIAL_NONSTANDARD
 
 	  Most people can say N here.
 
+config TINY_SERIAL_CONSOLE
+	bool "Enable tiny_tty driver to be used as a console"
+	---help---
+	  This is an option applicable to Ajit processor.
+	  Choosing this option allows the tiny_tty driver to be 
+	  registered as a console.
+
+
 config ROCKETPORT
 	tristate "Comtrol RocketPort support"
 	depends on SERIAL_NONSTANDARD && (ISA || EISA || PCI)

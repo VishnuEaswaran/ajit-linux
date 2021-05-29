@@ -25,6 +25,7 @@ struct Sun_Machine_Models {
 
 #define SM_ARCH_MASK  0xf0
 #define  M_LEON       0x30
+#define M_AJIT	      0x40
 #define SM_SUN4M      0x70
 #define SM_SUN4M_OBP  0x80
 

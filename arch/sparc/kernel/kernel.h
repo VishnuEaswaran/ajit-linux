@@ -83,6 +83,7 @@ void init_IRQ(void);
 
 /* sun4m_irq.c */
 void sun4m_init_IRQ(void);
+void AJIT_init_IRQ(void);
 void sun4m_unmask_profile_irq(void);
 void sun4m_clear_profile_irq(int cpu);
 

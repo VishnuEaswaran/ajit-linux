@@ -35,6 +35,9 @@
 
 #include "kstrtox.h"
 
+
+
+
 /**
  * simple_strtoull - convert a string to an unsigned long long
  * @cp: The start of the string
@@ -506,12 +509,14 @@ static noinline_for_stack
 char *string(char *buf, char *end, const char *s, struct printf_spec spec)
 {
 	int len, i;
+	
+	
 
 	if ((unsigned long)s < PAGE_SIZE)
 		s = "(null)";
 
 	len = strnlen(s, spec.precision);
-
+	
 	if (!(spec.flags & LEFT)) {
 		while (len < spec.field_width--) {
 			if (buf < end)
@@ -525,6 +530,7 @@ char *string(char *buf, char *end, const char *s, struct printf_spec spec)
 		++buf; ++s;
 	}
 	while (len < spec.field_width--) {
+
 		if (buf < end)
 			*buf = ' ';
 		++buf;
@@ -1425,6 +1431,7 @@ int format_decode(const char *fmt, struct printf_spec *spec)
 {
 	const char *start = fmt;
 
+	//ajit_putstring("In format_decode ");
 	/* we finished early by reading the field width */
 	if (spec->type == FORMAT_TYPE_WIDTH) {
 		if (spec->field_width < 0) {
@@ -1719,8 +1726,11 @@ int vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
 		}
 
 		case FORMAT_TYPE_STR:
-			str = string(str, end, va_arg(args, char *), spec);
-			break;
+		{				       
+		
+		       str = string(str, end, va_arg(args, char *), spec);
+		    	break;
+		}
 
 		case FORMAT_TYPE_PTR:
 			str = pointer(fmt+1, str, end, va_arg(args, void *),
@@ -1817,7 +1827,6 @@ int vscnprintf(char *buf, size_t size, const char *fmt, va_list args)
 	int i;
 
 	i = vsnprintf(buf, size, fmt, args);
-
 	if (likely(i < size))
 		return i;
 	if (size != 0)

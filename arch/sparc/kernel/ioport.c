@@ -49,18 +49,27 @@
 #include <asm/iommu.h>
 #include <asm/io-unit.h>
 #include <asm/leon.h>
+#include <asm/Ajit_srmmu.h>
 
 const struct sparc32_dma_ops *sparc32_dma_ops;
 
 /* This function must make sure that caches and memory are coherent after DMA
  * On LEON systems without cache snooping it flushes the entire D-CACHE.
  */
+
+//Ajit: Ajit does not support snooping. Flush entire cache 
 static inline void dma_make_coherent(unsigned long pa, unsigned long len)
 {
-	if (sparc_cpu_model == sparc_leon) {
+	if (sparc_cpu_model == sparc_leon) 
+	{
 		if (!sparc_leon3_snooping_enabled())
 			leon_flush_dcache_all();
 	}
+	else if (sparc_cpu_model == ajit) 
+	{
+		Ajit_flush_dcache_all();
+	}
+	
 }
 
 static void __iomem *_sparc_ioremap(struct resource *res, u32 bus, u32 pa, int sz);

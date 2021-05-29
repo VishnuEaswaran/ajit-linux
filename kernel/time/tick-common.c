@@ -19,7 +19,6 @@
 #include <linux/profile.h>
 #include <linux/sched.h>
 #include <linux/module.h>
-
 #include <asm/irq_regs.h>
 
 #include "tick-internal.h"
@@ -82,12 +81,10 @@ static void tick_periodic(int cpu)
 
 		/* Keep track of the next tick event */
 		tick_next_period = ktime_add(tick_next_period, tick_period);
-
 		do_timer(1);
 		write_sequnlock(&jiffies_lock);
 		update_wall_time();
 	}
-
 	update_process_times(user_mode(get_irq_regs()));
 	profile_tick(CPU_PROFILING);
 }
@@ -100,10 +97,13 @@ void tick_handle_periodic(struct clock_event_device *dev)
 	int cpu = smp_processor_id();
 	ktime_t next = dev->next_event;
 
+
 	tick_periodic(cpu);
 
 	if (dev->mode != CLOCK_EVT_MODE_ONESHOT)
+	{
 		return;
+	}
 	for (;;) {
 		/*
 		 * Setup the next period for devices, which do not have
@@ -112,7 +112,9 @@ void tick_handle_periodic(struct clock_event_device *dev)
 		next = ktime_add(next, tick_period);
 
 		if (!clockevents_program_event(dev, next, false))
+		{
 			return;
+		}
 		/*
 		 * Have to be careful here. If we're in oneshot mode,
 		 * before we call tick_periodic() in a loop, we need
@@ -123,7 +125,13 @@ void tick_handle_periodic(struct clock_event_device *dev)
 		 * the loop to trigger again and again.
 		 */
 		if (timekeeping_valid_for_hres())
+		{
 			tick_periodic(cpu);
+		}
+		else
+		{
+
+		}
 	}
 }
 
@@ -217,7 +225,9 @@ static void tick_setup_device(struct tick_device *td,
 		return;
 
 	if (td->mode == TICKDEV_MODE_PERIODIC)
+	{
 		tick_setup_periodic(newdev, 0);
+	}
 	else
 		tick_setup_oneshot(newdev, handler, next_event);
 }
@@ -319,6 +329,7 @@ void tick_check_new_device(struct clock_event_device *newdev)
 		clockevents_shutdown(curdev);
 		curdev = NULL;
 	}
+	
 	clockevents_exchange_device(curdev, newdev);
 	tick_setup_device(td, newdev, cpu, cpumask_of(cpu));
 	if (newdev->features & CLOCK_EVT_FEAT_ONESHOT)

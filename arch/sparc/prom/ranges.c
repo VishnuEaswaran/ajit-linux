@@ -83,9 +83,11 @@ void __init prom_ranges_init(void)
 		if(success != -1)
 			num_obio_ranges = (success/sizeof(struct linux_prom_ranges));
 	}
-
+	
 	if(num_obio_ranges)
+	{
 		prom_printf("PROMLIB: obio_ranges %d\n", num_obio_ranges);
+	}
 }
 
 void prom_apply_generic_ranges(phandle node, phandle parent,

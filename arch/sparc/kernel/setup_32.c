@@ -210,6 +210,12 @@ static void __init per_cpu_patch(void)
 		 */
 		return;
 	}
+	
+	if (sparc_cpu_model == ajit) 
+	{
+		//Do nothing. return.
+		return;
+	}
 
 	p = &__cpuid_patch;
 	while (p < &__cpuid_patch_end) {
@@ -267,21 +273,48 @@ static __init void leon_patch(void)
 }
 
 struct tt_entry *sparc_ttable;
-static struct pt_regs fake_swapper_regs;
+struct pt_regs fake_swapper_regs;
+
+
+#include"Ajit_romvec.h"
+
 
 /* Called from head_32.S - before we have setup anything
  * in the kernel. Be very careful with what you do here.
  */
+
+void __init sparc32_start_kernel(struct linux_romvec *rp)
+{
+	update_Ajit_romvec(rp); //update the nodeops field in the romvec
+	prom_init(rp);
+		
+	
+	/* Set sparc_cpu_model */
+	sparc_cpu_model = ajit;
+	
+	leon_patch();
+	prom_printf("\n-----------------------------------");
+	prom_printf("\n  Hello World from Ajit processor ");
+	prom_printf("\n-----------------------------------");
+	prom_printf("\n Romvec pointer passed by bootloader= 0x%x\n", (uint32_t)rp);
+	
+	start_kernel();
+}
+
+
+
+//original:
+/*
 void __init sparc32_start_kernel(struct linux_romvec *rp)
 {
 	prom_init(rp);
 
-	/* Set sparc_cpu_model */
+	// Set sparc_cpu_model 
 	sparc_cpu_model = sun_unknown;
 	if (!strcmp(&cputypval[0], "sun4m"))
 		sparc_cpu_model = sun4m;
 	if (!strcmp(&cputypval[0], "sun4s"))
-		sparc_cpu_model = sun4m; /* CP-1200 with PROM 2.30 -E */
+		sparc_cpu_model = sun4m; // CP-1200 with PROM 2.30 -E 
 	if (!strcmp(&cputypval[0], "sun4d"))
 		sparc_cpu_model = sun4d;
 	if (!strcmp(&cputypval[0], "sun4e"))
@@ -294,23 +327,25 @@ void __init sparc32_start_kernel(struct linux_romvec *rp)
 	leon_patch();
 	start_kernel();
 }
+*/
+
+
+
 
 void __init setup_arch(char **cmdline_p)
 {
 	int i;
 	unsigned long highest_paddr;
-
+	
 	sparc_ttable = (struct tt_entry *) &trapbase;
 
 	/* Initialize PROM console and command line. */
 	*cmdline_p = prom_getbootargs();
 	strlcpy(boot_command_line, *cmdline_p, COMMAND_LINE_SIZE);
 	parse_early_param();
-
 	boot_flags_init(*cmdline_p);
-
 	register_console(&prom_early_console);
-
+	
 	printk("ARCH: ");
 	switch(sparc_cpu_model) {
 	case sun4m:
@@ -327,6 +362,9 @@ void __init setup_arch(char **cmdline_p)
 		break;
 	case sparc_leon:
 		printk("LEON\n");
+		break;
+	case ajit:
+		printk("Ajit\n");
 		break;
 	default:
 		printk("UNKNOWN!\n");
@@ -365,7 +403,7 @@ void __init setup_arch(char **cmdline_p)
 
 	prom_setsync(prom_sync_me);
 
-	if((boot_flags & BOOTME_DEBUG) && (linux_dbvec != NULL) &&
+	if((boot_flags&BOOTME_DEBUG) && (linux_dbvec!=0) && 
 	   ((*(short *)linux_dbvec) != -1)) {
 		printk("Booted under KADB. Syncing trap table.\n");
 		(*(linux_dbvec->teach_debugger))();
@@ -375,9 +413,7 @@ void __init setup_arch(char **cmdline_p)
 
 	/* Run-time patch instructions to match the cpu model */
 	per_cpu_patch();
-
 	paging_init();
-
 	smp_setup_cpu_possible_map();
 }
 

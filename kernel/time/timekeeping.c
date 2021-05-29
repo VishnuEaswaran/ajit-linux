@@ -1576,7 +1576,7 @@ struct timespec get_monotonic_coarse(void)
 				now.tv_nsec + mono.tv_nsec);
 	return now;
 }
-
+#include<asm/oplib_32.h> //for prom_printf
 /*
  * Must hold jiffies_lock
  */
@@ -1584,6 +1584,10 @@ void do_timer(unsigned long ticks)
 {
 	jiffies_64 += ticks;
 	calc_global_load(ticks);
+
+	//added to Ajit_linux for viewing timer interrupts
+	//prom_printf("\n Timer ISR called. Jiffies = %lu",jiffies);
+
 }
 
 /**

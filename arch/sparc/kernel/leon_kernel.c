@@ -227,7 +227,8 @@ unsigned int leon_build_device_irq(unsigned int real_irq,
 		mask |= LEON_DO_ACK_HW;
 
 	desc = irq_to_desc(irq);
-	if (!desc || !desc->handle_irq || desc->handle_irq == handle_bad_irq) {
+	if (!desc || !desc->handle_irq || desc->handle_irq == handle_bad_irq) 
+	{
 		irq_set_chip_and_handler_name(irq, &leon_irq,
 					      flow_handler, name);
 		irq_set_chip_data(irq, (void *)mask);

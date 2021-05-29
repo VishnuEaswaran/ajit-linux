@@ -35,6 +35,7 @@ void __init auxio_probe(void)
 	switch (sparc_cpu_model) {
 	case sparc_leon:
 	case sun4d:
+	case ajit:
 		return;
 	default:
 		break;
@@ -96,6 +97,7 @@ void set_auxio(unsigned char bits_on, unsigned char bits_off)
 			auxio_register);
 		break;
 	case sun4d:
+	case ajit :
 		break;
 	default:
 		panic("Can't set AUXIO register on this machine.");

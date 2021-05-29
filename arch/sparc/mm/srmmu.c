@@ -46,6 +46,7 @@
 #include <asm/viking.h>
 #include <asm/swift.h>
 #include <asm/leon.h>
+#include <asm/Ajit_srmmu.h>
 #include <asm/mxcc.h>
 #include <asm/ross.h>
 
@@ -278,21 +279,31 @@ static void __init srmmu_nocache_init(void)
 
 	bitmap_bits = srmmu_nocache_size >> SRMMU_NOCACHE_BITMAP_SHIFT;
 
+	prom_printf("\n------__alloc_bootmem()");
 	srmmu_nocache_pool = __alloc_bootmem(srmmu_nocache_size,
 		SRMMU_NOCACHE_ALIGN_MAX, 0UL);
+	prom_printf("\n------memset()");
 	memset(srmmu_nocache_pool, 0, srmmu_nocache_size);
 
+	prom_printf("\n------__alloc_bootmem()");
 	srmmu_nocache_bitmap =
 		__alloc_bootmem(BITS_TO_LONGS(bitmap_bits) * sizeof(long),
 				SMP_CACHE_BYTES, 0UL);
+	prom_printf("\n------__bit_map_init()");
 	bit_map_init(&srmmu_nocache_map, srmmu_nocache_bitmap, bitmap_bits);
 
+	prom_printf("\n------__srmmu_get_nocache()");
 	srmmu_swapper_pg_dir = __srmmu_get_nocache(SRMMU_PGD_TABLE_SIZE, SRMMU_PGD_TABLE_SIZE);
 	memset(__nocache_fix(srmmu_swapper_pg_dir), 0, SRMMU_PGD_TABLE_SIZE);
 	init_mm.pgd = srmmu_swapper_pg_dir;
 
+	prom_printf("\n------__srmmu_early_allocate_ptable_skeleton()");
 	srmmu_early_allocate_ptable_skeleton(SRMMU_NOCACHE_VADDR, srmmu_nocache_end);
 
+
+
+	
+	
 	paddr = __pa((unsigned long)srmmu_nocache_pool);
 	vaddr = SRMMU_NOCACHE_VADDR;
 
@@ -314,6 +325,18 @@ static void __init srmmu_nocache_init(void)
 
 	flush_cache_all();
 	flush_tlb_all();
+
+
+	//Ajit specific:
+	prom_printf("\n**** PAGE_OFFSET = 0x%x", PAGE_OFFSET);
+	prom_printf("\n**** phys_base = 0x%lx", phys_base);
+	prom_printf("\n**** SRMMU_NOCACHE_VADDR = 0x%x", SRMMU_NOCACHE_VADDR);
+	prom_printf("\n**** srmmu_nocache_pool = 0x%p",srmmu_nocache_pool);
+	prom_printf("\n**** srmmu_nocache_end  = 0x%lx",srmmu_nocache_end);
+	prom_printf("\n**** srmmu_nocache_size = 0x%lx",srmmu_nocache_size);
+	prom_printf("\n**** srmmu_swapper_pg_dir = 0x%p", srmmu_swapper_pg_dir);
+	prom_printf("\n****  __pa((unsigned long)srmmu_nocache_pool) = 0x%lx",  __pa((unsigned long)srmmu_nocache_pool));
+	
 }
 
 pgd_t *get_pgd_fast(void)
@@ -469,8 +492,9 @@ void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm,
 
 	if (sparc_cpu_model == sparc_leon)
 		leon_switch_mm();
-
-	if (is_hypersparc)
+	else if(sparc_cpu_model == ajit)
+		Ajit_switch_mm();
+	else if (is_hypersparc)
 		hyper_flush_whole_icache();
 
 	srmmu_set_context(mm->context);
@@ -898,15 +922,25 @@ void __init srmmu_paging_init(void)
 		prom_printf("Something wrong, can't find cpu node in paging_init.\n");
 		prom_halt();
 	}
+	else
+	{
+		prom_printf("\n Mmu num_contexts = %d",num_contexts);
+	}
 
 	pages_avail = 0;
+	prom_printf("\n------bootmem_init(&pages_avail)");
 	last_valid_pfn = bootmem_init(&pages_avail);
-
+	prom_printf("\n------srmmu_nocache_calcsize()");
 	srmmu_nocache_calcsize();
+	prom_printf("\n------srmmu_nocache_init()");
 	srmmu_nocache_init();
+	prom_printf("\n------srmmu_inherit_prom_mappings()");
 	srmmu_inherit_prom_mappings(0xfe400000, (LINUX_OPPROM_ENDVM - PAGE_SIZE));
+	prom_printf("\n------map_kernel()");
 	map_kernel();
 
+	
+	
 	/* ctx table has to be physically aligned to its size */
 	srmmu_context_table = __srmmu_get_nocache(num_contexts * sizeof(ctxd_t), num_contexts * sizeof(ctxd_t));
 	srmmu_ctx_table_phys = (ctxd_t *)__nocache_pa((unsigned long)srmmu_context_table);
@@ -915,6 +949,41 @@ void __init srmmu_paging_init(void)
 		srmmu_ctxd_set((ctxd_t *)__nocache_fix(&srmmu_context_table[i]), srmmu_swapper_pg_dir);
 
 	flush_cache_all();
+	//---------------------
+	//Begin Ajit-specific test:
+	//
+	//print out contents of the context table:
+	//	{
+	//	
+	//		unsigned long q_context_table_ptr= (unsigned long)srmmu_ctx_table_phys;
+	//		unsigned long table_address;
+	//		unsigned long table_entry;
+	//	
+	//		prom_printf("\n Context table pointer = 0x%lx", q_context_table_ptr);
+	//		prom_printf("\n Context table contents : ");
+	//		table_address = q_context_table_ptr;
+	//		for (i = 0; i < num_contexts; i++)
+	//		{
+	//			table_entry = mmu_bypass_read((int*)(table_address+4*i));
+	//			prom_printf("\n Entry [%x] 0x%lx",i,table_entry);
+	//		}
+	//	
+	//		table_address =   mmu_bypass_read((int*)(table_address+4*0));
+	//		table_address =   (table_address>>2)<<6;
+	//		prom_printf("\n L1 page table address = 0x%lx",table_address);
+	//		prom_printf("\n L1 page table contents : ");
+	//		for (i = 0; i < 256; i++)
+	//		{
+	//			table_entry = mmu_bypass_read((int*)(table_address+4*i));
+	//			prom_printf("\n Entry [%x] 0x%lx",i,table_entry);
+	//		}
+	//	
+	//	}
+	//	//End Ajit-specific test
+	//---------------------
+	
+	
+
 	srmmu_set_ctable_ptr((unsigned long)srmmu_ctx_table_phys);
 #ifdef CONFIG_SMP
 	/* Stop from hanging here... */
@@ -923,10 +992,8 @@ void __init srmmu_paging_init(void)
 	flush_tlb_all();
 #endif
 	poke_srmmu();
-
 	srmmu_allocate_ptable_skeleton(sparc_iomap.start, IOBASE_END);
 	srmmu_allocate_ptable_skeleton(DVMA_VADDR, DVMA_END);
-
 	srmmu_allocate_ptable_skeleton(
 		__fix_to_virt(__end_of_fixed_addresses - 1), FIXADDR_TOP);
 	srmmu_allocate_ptable_skeleton(PKMAP_BASE, PKMAP_END);
@@ -938,9 +1005,7 @@ void __init srmmu_paging_init(void)
 
 	flush_cache_all();
 	flush_tlb_all();
-
 	sparc_context_init(num_contexts);
-
 	kmap_init();
 
 	{
@@ -1536,13 +1601,21 @@ static void __init get_srmmu_type(void)
 	psr_typ = (psr >> 28) & 0xf;
 	psr_vers = (psr >> 24) & 0xf;
 
+	/*Check for Ajit processor */
+	if (sparc_cpu_model == ajit) {
+		init_Ajit();		
+		return;
+	}
+
+	
 	/* First, check for sparc-leon. */
 	if (sparc_cpu_model == sparc_leon) {
 		init_leon();
 		return;
 	}
+	
 
-	/* Second, check for HyperSparc or Cypress. */
+	/* Third, check for HyperSparc or Cypress. */
 	if (mod_typ == 1) {
 		switch (mod_rev) {
 		case 7:

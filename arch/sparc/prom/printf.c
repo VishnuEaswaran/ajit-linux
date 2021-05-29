@@ -64,6 +64,5 @@ void notrace prom_printf(const char *fmt, ...)
 	va_start(args, fmt);
 	i = vscnprintf(ppbuf, sizeof(ppbuf), fmt, args);
 	va_end(args);
-
 	prom_write(ppbuf, i);
 }

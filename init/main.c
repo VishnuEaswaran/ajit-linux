@@ -507,46 +507,63 @@ asmlinkage __visible void __init start_kernel(void)
 	 * Need to run as early as possible, to initialize the
 	 * lockdep hash:
 	 */
+	
+	prom_printf("\n------ entering function in file %s, line %d at JIFFIES = %lx \n",__FILE__, (__LINE__+1), jiffies);
 	lockdep_init();
+	prom_printf("\n------ lockdep_init\n");
 	smp_setup_processor_id();
+	prom_printf("\n------ smp_setup_processor_id\n");
 	debug_objects_early_init();
+	prom_printf("\n------ debug_objects_early_init\n");
 
 	/*
 	 * Set up the the initial canary ASAP:
 	 */
 	boot_init_stack_canary();
-
+	prom_printf("\n------ boot_init_stack_canary\n");
 	cgroup_init_early();
-
+	prom_printf("\n------ cgroup_init_early\n");
 	local_irq_disable();
+	prom_printf("\n------ local_irq_disable\n");
 	early_boot_irqs_disabled = true;
+	prom_printf("\n------ early_boot_irqs_disabled\n");
 
 /*
  * Interrupts are still disabled. Do necessary setups, then
  * enable them
  */
 	boot_cpu_init();
+	prom_printf("\n------ boot_cpu_init\n");
 	page_address_init();
+	prom_printf("\n------ page_address_init\n");
+
+	// This calls printk which never returns and
+	// goes into an infinite loop. MPD.
 	pr_notice("%s", linux_banner);
 	setup_arch(&command_line);
-	mm_init_cpumask(&init_mm);
-	setup_command_line(command_line);
+	mm_init_cpumask(&init_mm); 
+	setup_command_line(command_line); 
+
 	setup_nr_cpu_ids();
 	setup_per_cpu_areas();
 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
-
 	build_all_zonelists(NULL, NULL);
 	page_alloc_init();
-
 	pr_notice("Kernel command line: %s\n", boot_command_line);
 	parse_early_param();
+
+	
+	
+
 	after_dashes = parse_args("Booting kernel",
 				  static_command_line, __start___param,
 				  __stop___param - __start___param,
 				  -1, -1, &unknown_bootoption);
 	if (after_dashes)
+	{
 		parse_args("Setting init args", after_dashes, NULL, 0, -1, -1,
 			   set_init_arg);
+	}
 
 	jump_label_init();
 
@@ -554,6 +571,7 @@ asmlinkage __visible void __init start_kernel(void)
 	 * These use large bootmem allocations and must precede
 	 * kmem_cache_init()
 	 */
+	prom_printf("\n------ entering function in file %s, line %d at JIFFIES = %lx \n ",__FILE__, (__LINE__+1), jiffies);
 	setup_log_buf(0);
 	pidhash_init();
 	vfs_caches_init_early();
@@ -573,7 +591,9 @@ asmlinkage __visible void __init start_kernel(void)
 	 */
 	preempt_disable();
 	if (WARN(!irqs_disabled(), "Interrupts were enabled *very* early, fixing it\n"))
+	{
 		local_irq_disable();
+	}
 	idr_init_cache();
 	rcu_init();
 	tick_nohz_init();
@@ -587,6 +607,7 @@ asmlinkage __visible void __init start_kernel(void)
 	hrtimers_init();
 	softirq_init();
 	timekeeping_init();
+	prom_printf("\n Entering time_init()");
 	time_init();
 	sched_clock_postinit();
 	perf_event_init();
@@ -595,14 +616,52 @@ asmlinkage __visible void __init start_kernel(void)
 	WARN(!irqs_disabled(), "Interrupts were enabled early\n");
 	early_boot_irqs_disabled = false;
 	local_irq_enable();
-
 	kmem_cache_init_late();
+
+	//	//===============================================
+	//	//Test for accessing IO registers
+	//	{
+	//		prom_printf("\n**************************");
+	//		prom_printf("\nTesting IO access");
+	//		if(!(request_mem_region(0x3200, 16, "Ajit_serial")))
+	//		{
+	//			prom_printf("... FAILED ");
+	//		}
+	//		else
+	//		{
+	//	
+	//			void __iomem *addr = ioremap(0x3200, 16);
+	//			if(addr)
+	//			{
+	//				prom_printf("\n ioremap returned %p",addr);
+	//				prom_printf("\n Trying to write to address 0x3200");
+	//				iowrite32be(0x01, addr);
+	//				iowrite32be(0x00, addr);
+	//				iowrite32be(0x01, addr);
+	//				iowrite32be(0x03, addr);
+	//				prom_printf("\n Read from addr 0x3200 = %x",ioread32be(addr));
+	//				
+	//				iounmap(addr);
+	//	
+	//			}
+	//			else
+	//			{
+	//				prom_printf("\n ioremap returned NULL");
+	//			}
+	//			release_mem_region(0x3200,16);
+	//		}
+	//	}
+	//	//===============================================
+
+
+
 
 	/*
 	 * HACK ALERT! This is early. We're enabling the console before
 	 * we've done PCI setups etc, and console_init() must be aware of
 	 * this. But we do want output early, in case something goes wrong.
 	 */
+	prom_printf("\n------ entering function in file %s, line %d at JIFFIES = %lx \n",__FILE__, (__LINE__+1), jiffies);
 	console_init();
 	if (panic_later)
 		panic("Too many boot %s vars at `%s'", panic_later,
@@ -631,9 +690,14 @@ asmlinkage __visible void __init start_kernel(void)
 	kmemleak_init();
 	setup_per_cpu_pageset();
 	numa_policy_init();
+	prom_printf("\n late_time_init = %p", late_time_init);
 	if (late_time_init)
+	{
+		prom_printf("\n Entering late_time_init()");
 		late_time_init();
+	}
 	sched_clock_init();
+	prom_printf("\n------ entering function in file %s, line %d at JIFFIES = %lx \n",__FILE__, (__LINE__+1), jiffies);
 	calibrate_delay();
 	pidmap_init();
 	anon_vma_init();
@@ -663,19 +727,15 @@ asmlinkage __visible void __init start_kernel(void)
 	cpuset_init();
 	taskstats_init_early();
 	delayacct_init();
-
 	check_bugs();
-
 	sfi_init_late();
-
 	if (efi_enabled(EFI_RUNTIME_SERVICES)) {
 		efi_late_init();
 		efi_free_boot_services();
 	}
-
 	ftrace_init();
-
 	/* Do the rest non-__init'ed, we're now alive */
+	prom_printf("\n------ entering function in file %s, line %d at JIFFIES = %lx \n ",__FILE__, (__LINE__+1), jiffies);
 	rest_init();
 }
 
@@ -763,6 +823,8 @@ static int __init_or_module do_one_initcall_debug(initcall_t fn)
 	unsigned long long duration;
 	int ret;
 
+	prom_printf("\n------ entering function do_one_initcall_debug(%p)",fn);
+
 	printk(KERN_DEBUG "calling  %pF @ %i\n", fn, task_pid_nr(current));
 	calltime = ktime_get();
 	ret = fn();
@@ -780,6 +842,8 @@ int __init_or_module do_one_initcall(initcall_t fn)
 	int count = preempt_count();
 	int ret;
 	char msgbuf[64];
+	
+	prom_printf("\n------ entering function do_one_initcall(%p)",fn);
 
 	if (initcall_blacklisted(fn))
 		return -EPERM;
@@ -845,6 +909,7 @@ static void __init do_initcall_level(int level)
 	extern const struct kernel_param __start___param[], __stop___param[];
 	initcall_t *fn;
 
+	prom_printf("\n------ entering function do_initcall_level(%d)",level);
 	strcpy(initcall_command_line, saved_command_line);
 	parse_args(initcall_level_names[level],
 		   initcall_command_line, __start___param,
@@ -873,14 +938,23 @@ static void __init do_initcalls(void)
  */
 static void __init do_basic_setup(void)
 {
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	cpuset_init_smp();
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	usermodehelper_init();
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	shmem_init();
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	driver_init();
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	init_irq_proc();
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	do_ctors();
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	usermodehelper_enable();
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	do_initcalls();
+	prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 	random_int_secret_init();
 }
 
@@ -931,17 +1005,22 @@ static int __ref kernel_init(void *unused)
 {
 	int ret;
 
+	prom_printf("\n------ entering function in file %s, line %d at JIFFIES = %lx \n ",__FILE__, (__LINE__+1), jiffies);
 	kernel_init_freeable();
 	/* need to finish all async __init code before freeing the memory */
 	async_synchronize_full();
+	prom_printf("\n------ entering function in file %s, line %d at JIFFIES = %lx \n ",__FILE__, (__LINE__+1), jiffies);
 	free_initmem();
 	mark_rodata_ro();
 	system_state = SYSTEM_RUNNING;
 	numa_default_policy();
 
+	prom_printf("\n------ entering function in file %s, line %d at JIFFIES = %lx \n ",__FILE__, (__LINE__+1), jiffies);
 	flush_delayed_fput();
 
 	if (ramdisk_execute_command) {
+		prom_printf("\n------ ramdisk_execute_command = %s", ramdisk_execute_command);
+	prom_printf("\n------ entering function in file %s, line %d at JIFFIES = %lx \n ",__FILE__, (__LINE__+1), jiffies);
 		ret = run_init_process(ramdisk_execute_command);
 		if (!ret)
 			return 0;
@@ -956,6 +1035,8 @@ static int __ref kernel_init(void *unused)
 	 * trying to recover a really broken machine.
 	 */
 	if (execute_command) {
+		prom_printf("\n------ execute_command= %s", execute_command);
+		prom_printf("\n------ entering function in file %s, line %d \n",__FILE__, (__LINE__+1));
 		ret = run_init_process(execute_command);
 		if (!ret)
 			return 0;
@@ -998,15 +1079,76 @@ static noinline void __init kernel_init_freeable(void)
 	do_pre_smp_initcalls();
 	lockup_detector_init();
 
+	prom_printf("\n------ entering function in file %s, line %d at JIFFIES = %lx \n ",__FILE__, (__LINE__+1), jiffies);
 	smp_init();
 	sched_init_smp();
-
 	do_basic_setup();
+
+		
+	//------------------------------------------------------------
+	//Ajit-test (1)
+	//Try to open a simple text file for reading
+	{
+		const char* filename = "/home/README";
+		//char my_write_buff[10] = {'a','b','c','d','\0','\0','\0','\0','\0','\0'};
+		char my_read_buff[100]  = {'\0'};
+		int fd;
+		prom_printf("\n AJIT FILESYSTEM TEST : Trying to open file %s ...",filename);
+		fd = sys_open(filename, O_RDONLY, 0);
+		if (fd >= 0) 
+		{
+			//success
+			prom_printf("\n Opened file %s  successfully",filename);
+			sys_read(fd, my_read_buff, 24);
+			my_read_buff[24]='\0';
+			sys_close(fd);
+			prom_printf("\n Read the following characters : %s", my_read_buff);
+
+		}
+		else
+		{
+			//failure
+			prom_printf("\n ERROR : Unable to open file %s",filename);
+		}
+		prom_printf("\n");
+	}
+	//------------------------------------------------------------
+
+	//------------------------------------------------------------
+	//Ajit-test (2)
+	//Try to open the UART device
+	{
+		const char* filename = "/dev/ttyS0";
+		char my_write_buff[10] = {'\n','a','b','c','\n','\0','\0','\0','\0','\0'};
+		int fd;
+		prom_printf("\n AJIT CONSOLE TEST : Trying to open file %s ...",filename);
+		fd = sys_open(filename, O_RDWR, 0);
+		if (fd >= 0) 
+		{
+			//success
+			prom_printf("\n Opened file %s  successfully",filename);
+			prom_printf("\n Writing a string %s to file ...",my_write_buff);
+			sys_write(fd, my_write_buff, 4);
+			sys_close(fd);
+
+		}
+		else
+		{
+			//failure
+			prom_printf("\n ERROR : Unable to open file %s",filename);
+		}
+		prom_printf("\n");
+	}
+	//------------------------------------------------------------
+
+		
+	
 
 	/* Open the /dev/console on the rootfs, this should never fail */
 	if (sys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
 		pr_err("Warning: unable to open an initial console.\n");
 
+	
 	(void) sys_dup(0);
 	(void) sys_dup(0);
 	/*
@@ -1019,6 +1161,7 @@ static noinline void __init kernel_init_freeable(void)
 
 	if (sys_access((const char __user *) ramdisk_execute_command, 0) != 0) {
 		ramdisk_execute_command = NULL;
+	prom_printf("\n------ entering function in file %s, line %d at JIFFIES = %lx \n ",__FILE__, (__LINE__+1), jiffies);
 		prepare_namespace();
 	}
 
@@ -1029,5 +1172,6 @@ static noinline void __init kernel_init_freeable(void)
 	 */
 
 	/* rootfs is available now, try loading default modules */
+	prom_printf("\n------ entering function in file %s, line %d at JIFFIES = %lx \n ",__FILE__, (__LINE__+1), jiffies);
 	load_default_modules();
 }

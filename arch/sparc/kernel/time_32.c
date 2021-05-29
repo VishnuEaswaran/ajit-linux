@@ -104,7 +104,9 @@ irqreturn_t notrace timer_interrupt(int dummy, void *dev_id)
 	}
 
 	if (timer_ce_enabled)
+	{
 		timer_ce.event_handler(&timer_ce);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -125,7 +127,6 @@ static void timer_ce_set_mode(enum clock_event_mode mode,
 	}
 	smp_mb();
 }
-
 static __init void setup_timer_ce(void)
 {
 	struct clock_event_device *ce = &timer_ce;
@@ -341,8 +342,11 @@ fs_initcall(clock_init);
 
 static void __init sparc32_late_time_init(void)
 {
+
 	if (sparc_config.features & FEAT_L10_CLOCKEVENT)
+	{
 		setup_timer_ce();
+	}
 	if (sparc_config.features & FEAT_L10_CLOCKSOURCE)
 		setup_timer_cs();
 #ifdef CONFIG_SMP
