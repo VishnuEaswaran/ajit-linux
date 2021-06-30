@@ -1,0 +1,6 @@
+- What is SMP?
+    - How does SMP work?
+    - What are the system componnts? 
+- Does our current Linux version support it?
+- What all need to be modified and added for SMP?
+
